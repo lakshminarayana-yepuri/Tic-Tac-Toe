@@ -35,6 +35,7 @@ export default function GameBoard({ onSelectSquare, activePlayer, onReset, playe
     const [gameBoard, setGameBoard] = useState(initialGameBoard);
     const [winner, setWinner] = useState(null);
     const [isDraw, setIsDraw] = useState(false);
+    const [moveLog, setMoveLog] = useState([]);
 
     function handleSelectSquare(rowIndex, colIndex) {
         // ignore clicks when game already won
@@ -46,6 +47,13 @@ export default function GameBoard({ onSelectSquare, activePlayer, onReset, playe
         const updated = gameBoard.map((r) => [...r]);
         updated[rowIndex][colIndex] = activePlayer;
         setGameBoard(updated);
+
+        // record move in log
+        const playerLabel = playerNames[activePlayer] || activePlayer;
+        setMoveLog((prev) => [
+            ...prev,
+            { player: activePlayer, name: playerLabel, row: rowIndex + 1, col: colIndex + 1 },
+        ]);
 
         const w = calculateWinner(updated);
         if (w) {
@@ -67,6 +75,7 @@ export default function GameBoard({ onSelectSquare, activePlayer, onReset, playe
         setGameBoard(initialGameBoard);
         setWinner(null);
         setIsDraw(false);
+        setMoveLog([]);
         if (onReset) onReset();
     }
 
@@ -90,13 +99,22 @@ export default function GameBoard({ onSelectSquare, activePlayer, onReset, playe
                 ))}
             </ol>
 
-                    {(winner || isDraw) && (
-                        <div id="game-over">
-                            <h2>{winner ? `${playerNames[winner] || winner} wins!` : "Draw"}</h2>
-                            <p>{winner ? `${playerNames[winner] || ('Player ' + winner)} wins the game.` : "No more moves left."}</p>
-                            <button onClick={handleReset}>New Game</button>
-                        </div>
-                    )}
+            {/* Move log */}
+            <ul id="log">
+                {moveLog.map((entry, idx) => (
+                    <li key={idx} className={idx === moveLog.length - 1 ? "highlighted" : undefined}>
+                        {entry.name} ({entry.player}) placed at ({entry.row},{entry.col})
+                    </li>
+                ))}
+            </ul>
+
+            {(winner || isDraw) && (
+                <div id="game-over">
+                    <h2>{winner ? `${playerNames[winner] || winner} wins!` : "Draw"}</h2>
+                    <p>{winner ? `${playerNames[winner] || ('Player ' + winner)} wins the game.` : "No more moves left."}</p>
+                    <button onClick={handleReset}>New Game</button>
+                </div>
+            )}
         </>
     );
 }
